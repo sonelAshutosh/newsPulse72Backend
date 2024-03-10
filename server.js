@@ -1,8 +1,36 @@
-var http = require('http')
+import cors from 'cors'
+import dotenv from 'dotenv'
+import express from 'express'
+import mongoose from 'mongoose'
+import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
+import userRouter from './routing/userRoutes.js'
 
-http
-  .createServer(function (req, res) {
-    res.writeHead(200, { 'Content-Type': 'text/html' })
-    res.end('Hello World!')
+const app = express()
+dotenv.config()
+
+const PORT = 5500
+const URI = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@newspulse72database.x9jyr7l.mongodb.net/?retryWrites=true&w=majority&appName=newsPulse72Database`
+
+app.use(express.json())
+app.use(
+  cors({
+    origin: '*',
   })
-  .listen(8080)
+)
+app.use(cookieParser())
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+
+app.use('/users', userRouter)
+
+// ----------------------------------------------------------------
+// Database Connection
+// ----------------------------------------------------------------
+mongoose.connect(URI).then(() => {
+  app.listen(PORT, () => {
+    console.log('Connected to Database')
+    console.log(`App listening on PORT ${PORT}`)
+  })
+})
+// ----------------------------------------------------------------
