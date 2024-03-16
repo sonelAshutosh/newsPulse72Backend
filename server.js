@@ -5,6 +5,7 @@ import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import userRouter from './routing/userRoutes.js'
+import newsRouter from './routing/newsRoutes.js'
 
 const app = express()
 dotenv.config()
@@ -23,6 +24,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 app.use('/users', userRouter)
+app.use('/news', newsRouter)
 
 // ----------------------------------------------------------------
 // Database Connection
