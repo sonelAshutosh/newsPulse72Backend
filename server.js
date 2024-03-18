@@ -6,6 +6,7 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import userRouter from './routing/userRoutes.js'
 import newsRouter from './routing/newsRoutes.js'
+import commentRouter from './routing/commentRoutes.js'
 
 const app = express()
 dotenv.config()
@@ -25,6 +26,7 @@ app.use(bodyParser.json())
 
 app.use('/users', userRouter)
 app.use('/news', newsRouter)
+app.use('/comments', commentRouter)
 
 // ----------------------------------------------------------------
 // Database Connection

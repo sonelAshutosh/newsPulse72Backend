@@ -6,14 +6,15 @@ import {
   updateComment,
   getCommentById,
 } from '../controllers/commentControllers.js'
-import authenticateToken from '../auth/auth.js'
 
 const commentRouter = Router()
 
 commentRouter.get('/', getAllComments)
 commentRouter.get('/comment/:id', getCommentById)
-commentRouter.post('/', authenticateToken, createNewComment)
-commentRouter.put('/comment/:id', authenticateToken, updateComment)
-commentRouter.delete('/comment/:id', authenticateToken, deleteComment)
+commentRouter.post('/', createNewComment)
+
+// this routes currently do nto work
+commentRouter.put('/comment/:id', updateComment)
+commentRouter.delete('/comment/:id', deleteComment)
 
 export default commentRouter

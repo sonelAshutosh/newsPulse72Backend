@@ -1,4 +1,4 @@
-import Comment from '../models/Comments.js'
+import Comment from '../models/Comment.js'
 
 export const getAllComments = async (req, res) => {
   let comments
@@ -20,7 +20,7 @@ export const getCommentById = async (req, res) => {
   let commentsById
 
   try {
-    commentsById = await Comment.find({ blogId: req.params.id })
+    commentsById = await Comment.find({ newsId: req.params.id })
       .sort({ createdAt: -1 })
       .exec()
   } catch (err) {
@@ -34,13 +34,13 @@ export const getCommentById = async (req, res) => {
 }
 
 export const createNewComment = async (req, res) => {
-  const { content, userId, blogId } = req.body
+  const { content, userId, newsId } = req.body
 
   if (
     !content ||
     !content.trim() ||
-    !blogId.trim() ||
-    (!userId.trim() && !userId && !blogId)
+    !newsId.trim() ||
+    (!userId.trim() && !userId && !newsId)
   ) {
     return res.status(404).json({ message: 'Invalid Data' })
   }
@@ -48,7 +48,7 @@ export const createNewComment = async (req, res) => {
   let comment
 
   try {
-    comment = new Comment({ content, userId, blogId })
+    comment = new Comment({ content, userId, newsId })
     await comment.save()
   } catch (err) {
     console.log(err)

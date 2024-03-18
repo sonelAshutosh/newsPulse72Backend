@@ -78,6 +78,44 @@ export const signIn = async (req, res, next) => {
   })
 }
 
+export const adminSignIn = async (req, res, next) => {
+  const { email, password } = req.body
+
+  if (!email.trim() || !password || password.length < 6) {
+    return res.status(422).json({ message: 'Invalid Data' })
+  }
+
+  let existingUser
+
+  try {
+    existingUser = await User.findOne({ email, isAdmin: true })
+  } catch (err) {
+    console.error(err)
+    return res.status(404).json({ message: 'No User Found' })
+  }
+
+  if (!existingUser) {
+    return res.status(404).json({ message: 'No User Found' })
+  }
+
+  const isPasswordCorrect = bcrypt.compareSync(password, existingUser.password)
+
+  if (!isPasswordCorrect) {
+    return res.status(400).json({ message: 'Incorrect Password' })
+  }
+
+  const existingUserAccessToken = jwt.sign(
+    { email: existingUser.email },
+    process.env.ACCESS_TOKEN_SECRET
+  )
+
+  return res.status(200).json({
+    message: 'Login Successfull',
+    accessToken: existingUserAccessToken,
+    userId: existingUser._id,
+  })
+}
+
 export const getUserById = async (req, res) => {
   const userId = req.params.id
   let user
