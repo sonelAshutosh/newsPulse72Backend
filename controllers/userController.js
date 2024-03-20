@@ -75,7 +75,7 @@ export const signIn = async (req, res, next) => {
     message: 'Login Successfull',
     accessToken: existingUserAccessToken,
     userId: existingUser._id,
-    category: existingUser.category
+    categories: existingUser.categories
   })
 }
 
