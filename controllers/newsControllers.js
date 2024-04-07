@@ -14,6 +14,22 @@ export const getAllNews = async (req, res) => {
   return res.status(200).json({ news })
 }
 
+export const getAllNewsByCategory = async (req, res) => {
+  let news
+  try {
+    news = await News.find({ category: req.params.category })
+      .sort({ createdAt: -1 })
+      .exec()
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (!news)
+    return res.status(500).json({ message: 'Unexpected Error Occurred' })
+
+  return res.status(200).json({ news })
+}
+
 export const getOneNews = async (req, res) => {
   const id = req.params.newsId
 
@@ -81,6 +97,8 @@ export const createNewNews = async (req, res) => {
 export const updateOneNews = async (req, res) => {
   const newsId = req.params.newsId
   const { title, content, summary, category, isVerified } = req.body
+
+  category = category.toLowerCase()
 
   let existingNews
   try {

@@ -8,12 +8,14 @@ import {
   getNotVerifiedNews,
   likeNews,
   dislikeNews,
+  getAllNewsByCategory,
 } from '../controllers/newsControllers.js'
 
 const newsRouter = Router()
 
 newsRouter.get('/', getAllNews)
 newsRouter.get('/:newsId', getOneNews)
+newsRouter.get('/category/:category', getAllNewsByCategory)
 
 newsRouter.get('/verified', getVerifiedNews)
 newsRouter.get('/notVerified', getNotVerifiedNews)

@@ -13,7 +13,7 @@ commentRouter.get('/', getAllComments)
 commentRouter.get('/comment/:id', getCommentById)
 commentRouter.post('/', createNewComment)
 
-// this routes currently do nto work
+// this routes currently do not work
 commentRouter.put('/comment/:id', updateComment)
 commentRouter.delete('/comment/:id', deleteComment)
 

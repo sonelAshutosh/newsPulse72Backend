@@ -57,7 +57,7 @@ export const signIn = async (req, res, next) => {
   }
 
   if (!existingUser) {
-    res.status(404).json({ message: 'No User Found' })
+    return res.status(404).json({ message: 'No User Found' })
   }
 
   const isPasswordCorrect = bcrypt.compareSync(password, existingUser.password)
@@ -131,4 +131,21 @@ export const getUserById = async (req, res) => {
   }
 
   return res.status(200).json({ user })
+}
+
+export const getUserCategories = async (req, res) => {
+  const userId = req.body.id
+
+  let user
+  try {
+    user = await User.findById(userId)
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (!user) {
+    return res.status(404).json({ message: 'No User Found' })
+  }
+
+  return res.status(200).json({ categories: user.categories })
 }
