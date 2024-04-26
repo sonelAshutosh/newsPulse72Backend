@@ -98,8 +98,6 @@ export const updateOneNews = async (req, res) => {
   const newsId = req.params.newsId
   const { title, content, summary, category, isVerified } = req.body
 
-  category = category.toLowerCase()
-
   let existingNews
   try {
     existingNews = await News.findByIdAndUpdate(newsId, {

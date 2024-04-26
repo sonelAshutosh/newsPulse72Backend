@@ -75,7 +75,7 @@ export const signIn = async (req, res, next) => {
     message: 'Login Successfull',
     accessToken: existingUserAccessToken,
     userId: existingUser._id,
-    categories: existingUser.categories
+    categories: existingUser.categories,
   })
 }
 
@@ -149,4 +149,22 @@ export const getUserCategories = async (req, res) => {
   }
 
   return res.status(200).json({ categories: user.categories })
+}
+
+export const setUserCategories = async (req, res) => {
+  const { id } = req.params
+  const { categories } = req.body
+
+  //wrtie the code to set user categories in the db
+  try {
+    await User.findByIdAndUpdate(id, { categories })
+  } catch (err) {
+    console.log(err)
+  }
+
+  if (!id) {
+    return res.status(404).json({ message: 'No User Found' })
+  }
+
+  return res.status(200).json({ message: 'User Categories Updated' })
 }
