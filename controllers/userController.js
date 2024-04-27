@@ -1,4 +1,5 @@
 import User from '../models/User.js'
+import Saved from '../models/Saved.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 
@@ -167,4 +168,44 @@ export const setUserCategories = async (req, res) => {
   }
 
   return res.status(200).json({ message: 'User Categories Updated' })
+}
+
+export const isSaved = async (req, res) => {
+  const userId = req.params.userId
+  const newsId = req.params.newsId
+
+  try {
+    const savedArticle = await Saved.findOne({ userId, newsId })
+
+    if (savedArticle) {
+      return res.status(200).json({ saved: true })
+    } else {
+      return res.status(200).json({ saved: false })
+    }
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal Server Error' })
+  }
+}
+
+export const saveArticle = async (req, res) => {
+  const userId = req.params.userId
+  const newsId = req.params.newsId
+
+  try {
+    const savedArticle = await Saved.findOne({ userId, newsId })
+
+    if (savedArticle == null) {
+      const saveArticle = new Saved({
+        userId,
+        newsId,
+      })
+      await saveArticle.save()
+      return res.status(200).json({ message: 'Article Saved' })
+    } else {
+      await Saved.deleteOne(saveArticle._id)
+      return res.status(200).json({ message: 'Article Deleted' })
+    }
+  } catch (error) {
+    console.log(error)
+  }
 }

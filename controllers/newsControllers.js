@@ -1,4 +1,6 @@
 import News from '../models/News.js'
+import User from '../models/User.js'
+import Saved from '../models/Saved.js'
 
 export const getAllNews = async (req, res) => {
   let news
@@ -28,6 +30,53 @@ export const getAllNewsByCategory = async (req, res) => {
     return res.status(500).json({ message: 'Unexpected Error Occurred' })
 
   return res.status(200).json({ news })
+}
+
+export const getUscNews = async (req, res) => {
+  const userId = req.params.userId
+
+  try {
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' })
+    }
+    const user = await User.findById(userId).exec()
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' })
+    }
+
+    const { categories } = user
+
+    const news = await News.find({ category: { $in: categories } })
+      .sort({ createdAt: -1 })
+      .exec()
+
+    if (!news || news.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No news found for the user's categories" })
+    }
+
+    return res.status(200).json({ news })
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ message: 'Unexpected Error Occurred' })
+  }
+}
+
+export const getUserSavedNews = async (req, res) => {
+  const userId = req.params.userId
+
+  try {
+    const savedNews = await Saved.find({ userId }, { newsId: 1 })
+    const newsIds = savedNews.map((saved) => saved.newsId)
+
+    const news = await News.find({ _id: { $in: newsIds } })
+    return res.status(200).json({ news })
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ message: 'Unexpected Error Occurred' })
+  }
 }
 
 export const getOneNews = async (req, res) => {
@@ -147,81 +196,90 @@ export const getNotVerifiedNews = async (req, res) => {
 }
 
 export const likeNews = async (req, res) => {
-  let newsArticle
+  const userId = req.params.userId
+  const newsId = req.params.newsId
 
   try {
-    newsArticle = await News.findById(req.params.id)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).json({ message: 'Server Error' })
+    // Find the news by its ID
+    const news = await News.findById(newsId)
+
+    if (!news) {
+      return res.status(404).json({ message: 'News not found' })
+    }
+
+    const hasLiked = news.likes.includes(userId)
+    const hasDisliked = news.disLikes.includes(userId)
+
+    if (!hasLiked) {
+      // Add user ID to likes array
+      news.likes.push(userId)
+
+      // If user previously disliked, remove their ID from dislikes array
+      if (hasDisliked) {
+        news.disLikes = news.disLikes.filter((id) => id !== userId)
+      }
+
+      await news.save()
+      return res.status(200).json({
+        message: 'News Liked',
+        likesCount: news.likes.length,
+        disLikesCount: news.disLikes.length,
+      })
+    } else {
+      // Remove user ID from likes array
+      news.likes = news.likes.filter((id) => id !== userId)
+      await news.save()
+      return res
+        .status(200)
+        .json({ message: 'News Unliked', likesCount: news.likes.length })
+    }
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: 'Internal Server Error' })
   }
-
-  if (!newsArticle) {
-    return res.status(404).json({ message: 'News article not found' })
-  }
-
-  let likesCount = newsArticle.likes.length
-
-  if (newsArticle.likes.includes(req.body.userId)) {
-    return res.status(400).json({ message: 'Already Liked', likesCount })
-  }
-
-  const indexOfUserDislike = newsArticle.disLikes.indexOf(req.body.userId)
-  if (indexOfUserDislike !== -1) {
-    newsArticle.disLikes.splice(indexOfUserDislike, 1)
-  }
-
-  newsArticle.likes.push(req.body.userId)
-
-  try {
-    await newsArticle.save()
-  } catch (err) {
-    console.error(err)
-    return res.status(500).json({ message: 'Server Error' })
-  }
-
-  likesCount = newsArticle.likes.length
-
-  return res.status(200).json({ message: 'News Article Liked', likesCount })
 }
 
 export const dislikeNews = async (req, res) => {
-  let newsArticle
+  const userId = req.params.userId
+  const newsId = req.params.newsId
 
   try {
-    newsArticle = await News.findById(req.params.id)
-  } catch (err) {
-    console.error(err)
-    return res.status(500).json({ message: 'Server Error' })
+    // Find the news by its ID
+    const news = await News.findById(newsId)
+
+    if (!news) {
+      return res.status(404).json({ message: 'News not found' })
+    }
+
+    const hasDisliked = news.disLikes.includes(userId)
+    const hasLiked = news.likes.includes(userId)
+
+    if (!hasDisliked) {
+      // If the user hasn't disliked the news yet, add their ID to the dislikes array
+      news.disLikes.push(userId)
+
+      // If the user has previously liked the news, remove their like
+      if (hasLiked) {
+        news.likes = news.likes.filter((id) => id !== userId)
+      }
+
+      await news.save()
+      return res.status(200).json({
+        message: 'News Disliked',
+        likesCount: news.likes.length,
+        disLikesCount: news.disLikes.length,
+      })
+    } else {
+      // If the user has already disliked the news, remove their ID from the dislikes array
+      news.disLikes = news.disLikes.filter((id) => id !== userId)
+      await news.save()
+      return res.status(200).json({
+        message: 'Dislike Removed',
+        disLikesCount: news.disLikes.length,
+      })
+    }
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: 'Internal Server Error' })
   }
-
-  if (!newsArticle) {
-    return res.status(404).json({ message: 'News article not found' })
-  }
-
-  let dislikesCount = newsArticle.disLikes.length
-
-  if (newsArticle.disLikes.includes(req.body.userId)) {
-    return res.status(400).json({ message: 'Already Disliked', dislikesCount })
-  }
-
-  const indexOfUserLike = newsArticle.likes.indexOf(req.body.userId)
-  if (indexOfUserLike !== -1) {
-    newsArticle.likes.splice(indexOfUserLike, 1)
-  }
-
-  newsArticle.disLikes.push(req.body.userId)
-
-  try {
-    await newsArticle.save()
-  } catch (err) {
-    console.error(err)
-    return res.status(500).json({ message: 'Server Error' })
-  }
-
-  dislikesCount = newsArticle.disLikes.length
-
-  return res
-    .status(200)
-    .json({ message: 'News Article Disliked', dislikesCount })
 }

@@ -9,6 +9,8 @@ import {
   likeNews,
   dislikeNews,
   getAllNewsByCategory,
+  getUscNews,
+  getUserSavedNews,
 } from '../controllers/newsControllers.js'
 
 const newsRouter = Router()
@@ -16,6 +18,8 @@ const newsRouter = Router()
 newsRouter.get('/', getAllNews)
 newsRouter.get('/:newsId', getOneNews)
 newsRouter.get('/category/:category', getAllNewsByCategory)
+newsRouter.get('/:userId/uscNews', getUscNews)
+newsRouter.get('/:userId/getUserSavedNews', getUserSavedNews)
 
 newsRouter.get('/verified', getVerifiedNews)
 newsRouter.get('/notVerified', getNotVerifiedNews)
@@ -23,7 +27,7 @@ newsRouter.get('/notVerified', getNotVerifiedNews)
 newsRouter.post('/create', createNewNews)
 newsRouter.put('/update/:newsId', updateOneNews)
 
-newsRouter.post('/:id/like', likeNews)
-newsRouter.post('/:id/disLike', dislikeNews)
+newsRouter.post('/:newsId/like/:userId', likeNews)
+newsRouter.post('/:newsId/disLike/:userId', dislikeNews)
 
 export default newsRouter
