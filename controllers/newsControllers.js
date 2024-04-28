@@ -1,6 +1,7 @@
 import News from '../models/News.js'
 import User from '../models/User.js'
 import Saved from '../models/Saved.js'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 export const getAllNews = async (req, res) => {
   let news
@@ -281,5 +282,46 @@ export const dislikeNews = async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ message: 'Internal Server Error' })
+  }
+}
+
+export const summerizeNewsAndSave = async (req, res) => {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.0-pro',
+  })
+
+  const scrappedObj = req.body
+
+  const prompt =
+    scrappedObj.content +
+    ' Summerize the news content into 40 to 50 words and also provide me a category to which the article belongs to in an JSON object format like {"category": "sports", "summary": "content of the article"}'
+
+  const summaryObj = await model.generateContent(prompt)
+  const responseData = JSON.parse(summaryObj.response.text())
+
+  try {
+    const { title, content, imageURL, sourceURL, datePosted } = scrappedObj
+    const { category, summary } = responseData
+
+    const categoryArray = category.split(',').map((item) => item.trim())
+
+    const news = new News({
+      title,
+      content,
+      imageURL,
+      sourceURL,
+      datePosted,
+      categoryArray,
+      summary,
+    })
+    await news.save()
+
+    return res
+      .status(200)
+      .json({ message: 'News Saved Successfully', category, summary })
+  } catch (error) {
+    console.error('Error parsing response:', error)
+    return res.status(500).json({ message: 'Error parsing response' })
   }
 }

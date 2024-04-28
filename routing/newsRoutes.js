@@ -11,6 +11,7 @@ import {
   getAllNewsByCategory,
   getUscNews,
   getUserSavedNews,
+  summerizeNewsAndSave,
 } from '../controllers/newsControllers.js'
 
 const newsRouter = Router()
@@ -29,5 +30,7 @@ newsRouter.put('/update/:newsId', updateOneNews)
 
 newsRouter.post('/:newsId/like/:userId', likeNews)
 newsRouter.post('/:newsId/disLike/:userId', dislikeNews)
+
+newsRouter.post('/scrappedNews/summerize/save', summerizeNewsAndSave)
 
 export default newsRouter
