@@ -22,8 +22,8 @@ newsRouter.get('/category/:category', getAllNewsByCategory)
 newsRouter.get('/:userId/uscNews', getUscNews)
 newsRouter.get('/:userId/getUserSavedNews', getUserSavedNews)
 
-newsRouter.get('/verified', getVerifiedNews)
-newsRouter.get('/notVerified', getNotVerifiedNews)
+newsRouter.get('/verified/true', getVerifiedNews)
+newsRouter.get('/notVerified/true', getNotVerifiedNews)
 
 newsRouter.post('/create', createNewNews)
 newsRouter.put('/update/:newsId', updateOneNews)

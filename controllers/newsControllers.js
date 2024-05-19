@@ -146,7 +146,7 @@ export const createNewNews = async (req, res) => {
 
 export const updateOneNews = async (req, res) => {
   const newsId = req.params.newsId
-  const { title, content, summary, category, isVerified } = req.body
+  const { title, content, summary, category, isVerified, imageURL } = req.body
 
   let existingNews
   try {
@@ -156,6 +156,7 @@ export const updateOneNews = async (req, res) => {
       summary,
       category,
       isVerified,
+      imageURL,
     })
   } catch (err) {
     console.log(err)
@@ -172,26 +173,27 @@ export const getVerifiedNews = async (req, res) => {
   try {
     news = await News.find({ isVerified: true }).sort({ createdAt: -1 }).exec()
   } catch (err) {
-    console.log(err)
+    return res.status(500).json({ message: 'Unexpected Error Occurred' })
   }
 
-  if (!news)
-    return res.status(500).json({ message: 'Unexpected Error Occurred' })
+  if (!news || news.length === 0) {
+    return res.status(404).json({ message: 'No verified news found' })
+  }
 
   return res.status(200).json({ news })
 }
 
 export const getNotVerifiedNews = async (req, res) => {
   let news
-  console.log('Veriefied')
   try {
     news = await News.find({ isVerified: false }).sort({ createdAt: -1 }).exec()
   } catch (err) {
-    console.log(err)
+    return res.status(500).json({ message: 'Unexpected Error Occurred' })
   }
 
-  if (!news)
-    return res.status(500).json({ message: 'Unexpected Error Occurred' })
+  if (!news || news.length === 0) {
+    return res.status(404).json({ message: 'No verified news found' })
+  }
 
   return res.status(200).json({ news })
 }
@@ -295,9 +297,10 @@ export const summerizeNewsAndSave = async (req, res) => {
 
   const prompt =
     scrappedObj.content +
-    ' Summerize the news content into 40 to 50 words and also provide me a category to which the article belongs to in an JSON object format like {"category": "sports", "summary": "content of the article"}'
+    ' Summerize the news content into 40 to 50 words and also provide me a category to which the article belongs to in an JSON object format like {"category": "sports", "summary": "content of the article"}. The category you provide me must be one of the following - [Politics, Business, Technology, Science, Health, Sports, Entertainment, Environment, Education, Travel. Crime, Weather]'
 
   const summaryObj = await model.generateContent(prompt)
+  console.log(summaryObj.response.text())
   const responseData = JSON.parse(summaryObj.response.text())
 
   try {
@@ -312,9 +315,10 @@ export const summerizeNewsAndSave = async (req, res) => {
       imageURL,
       sourceURL,
       datePosted,
-      categoryArray,
+      category: categoryArray,
       summary,
     })
+    // console.log(news)
     await news.save()
 
     return res
